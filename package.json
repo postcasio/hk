@@ -1,6 +1,6 @@
 {
   "name": "game",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "HKGame",
   "main": "build/main/index.js",
   "typings": "build/main/index.d.ts",
@@ -33,7 +33,11 @@
     "clean": "trash build test",
     "all": "run-s reset test cov:check doc:html",
     "prepare-release": "run-s all version doc:publish",
-    "preinstall": "node -e \"if(process.env.npm_execpath.indexOf('yarn') === -1) throw new Error('game must be installed with Yarn: https://yarnpkg.com/')\""
+    "preinstall": "node -e \"if(process.env.npm_execpath.indexOf('yarn') === -1) throw new Error('game must be installed with Yarn: https://yarnpkg.com/')\"",
+    "bundle": "rollup -c --experimentalCodeSplitting",
+    "start": "run-s build && run-s bundle && ../minisphere-5.2.12/SpheRun --verbose 0 game.json",
+    "start-2": "run-s build && run-s bundle && ../minisphere/bin/spherun --verbose 0 game.json",
+    "spherun": "../minisphere-5.2.12/SpheRun --verbose 0 game.json"
   },
   "scripts-info": {
     "info": "Display information about the package scripts",
@@ -52,9 +56,21 @@
     "node": ">=8.9"
   },
   "dependencies": {
+    "@babel/plugin-syntax-dynamic-import": "^7.2.0",
+    "@types/core-js": "^2.5.0",
+    "@types/eases": "^1.0.0",
+    "autolayout": "^0.7.0",
+    "core-js": "^2.6.0",
+    "eases": "^1.0.8",
+    "kiwi.js": "^1.1.0",
+    "lodash": "^4.17.11",
     "sha.js": "^2.4.11"
   },
   "devDependencies": {
+    "@babel/core": "^7.1.6",
+    "@babel/plugin-proposal-object-rest-spread": "^7.0.0",
+    "@babel/preset-env": "^7.1.6",
+    "@types/lodash": "^4.14.118",
     "ava": "1.0.0-beta.7",
     "codecov": "^3.1.0",
     "cz-conventional-changelog": "^2.1.0",
@@ -63,6 +79,10 @@
     "nyc": "^13.0.1",
     "opn-cli": "^3.1.0",
     "prettier": "^1.14.3",
+    "rollup": "^0.67.3",
+    "rollup-plugin-babel": "^4.0.3",
+    "rollup-plugin-commonjs": "^9.2.0",
+    "rollup-plugin-node-resolve": "^3.4.0",
     "standard-version": "^4.4.0",
     "trash-cli": "^1.4.0",
     "tslint": "^5.11.0",

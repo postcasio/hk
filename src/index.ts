@@ -1,3 +1,5 @@
-export * from './lib/async';
-export * from './lib/hash';
-export * from './lib/number';
+import config from './config';
+import Game from './lib/Game';
+
+const game = new Game(config);
+game.start();

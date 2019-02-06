@@ -1,0 +1,1 @@
+../../../types/minisphere.d.ts

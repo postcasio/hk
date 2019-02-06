@@ -35,9 +35,11 @@
     "prepare-release": "run-s all version doc:publish",
     "preinstall": "node -e \"if(process.env.npm_execpath.indexOf('yarn') === -1) throw new Error('game must be installed with Yarn: https://yarnpkg.com/')\"",
     "bundle": "rollup -c --experimentalCodeSplitting",
-    "start": "run-s build && run-s bundle && ../minisphere-5.2.12/SpheRun --verbose 0 game.json",
+    "start": "run-s build && run-s bundle && ../minisphere-5.3/SpheRun --verbose 0 game.json",
+    "debug": "run-s build && run-s bundle && ../minisphere-5.3/SSj game.json",
     "start-2": "run-s build && run-s bundle && ../minisphere/bin/spherun --verbose 0 game.json",
-    "spherun": "../minisphere-5.2.12/SpheRun --verbose 0 game.json"
+    "spherun": "../minisphere-5.3/SpheRun --verbose 0 game.json",
+    "zip": "zip build/release.zip build/bundles/* res/**/* game.json"
   },
   "scripts-info": {
     "info": "Display information about the package scripts",
@@ -64,7 +66,10 @@
     "eases": "^1.0.8",
     "kiwi.js": "^1.1.0",
     "lodash": "^4.17.11",
-    "sha.js": "^2.4.11"
+    "sha.js": "^2.4.11",
+    "util-inspect": "^0.1.8",
+    "winston": "^3.2.1",
+    "winston-transport": "^4.3.0"
   },
   "devDependencies": {
     "@babel/core": "^7.1.6",
@@ -82,6 +87,8 @@
     "rollup": "^0.67.3",
     "rollup-plugin-babel": "^4.0.3",
     "rollup-plugin-commonjs": "^9.2.0",
+    "rollup-plugin-json": "^3.1.0",
+    "rollup-plugin-node-builtins": "^2.1.2",
     "rollup-plugin-node-resolve": "^3.4.0",
     "standard-version": "^4.4.0",
     "trash-cli": "^1.4.0",

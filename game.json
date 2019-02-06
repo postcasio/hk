@@ -1,0 +1,10 @@
+{
+  "name": "hk",
+  "version": 2,
+  "apiLevel": 1,
+  "saveID": "casiotone.hk",
+  "author": "casiotone",
+  "summary": "kinetic game",
+  "resolution": "320x240",
+  "main": "@/build/bundles/index.js"
+}

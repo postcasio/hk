@@ -10,7 +10,11 @@ export default class Director {
   }
 
   setScene(sceneConstructor: typeof Scene, ...args: Array<any>) {
+    if (this.scene) {
+      this.scene.sceneDidLeave();
+    }
     this.scene = new sceneConstructor(this, ...args);
+    this.scene.sceneDidEnter();
     this.game.ui.renderScene(this.scene);
   }
 

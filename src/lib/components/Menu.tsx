@@ -11,6 +11,7 @@ import Kinetic, {
   Focused,
   KeyPressEvent
 } from 'kinetic';
+import uitheme from '../uitheme';
 
 interface MenuProps extends PositionProps, SizeProps {
   children?: Array<Element>;
@@ -23,6 +24,7 @@ interface OptionProps extends PositionProps, SizeProps {
   selectedBackgroundColor?: Color;
   children?: Array<Node>;
   selected?: boolean;
+  padding?: number;
 }
 
 interface MenuState {
@@ -31,7 +33,7 @@ interface MenuState {
 
 export default class Menu extends Component<MenuProps, MenuState> {
   static defaultProps = {
-    backgroundColor: new Color(0.5, 0.6, 0.6)
+    backgroundColor: uitheme.controls.window.background
   };
 
   constructor(props: MenuProps) {
@@ -42,14 +44,6 @@ export default class Menu extends Component<MenuProps, MenuState> {
     return {
       selectedIndex: 0
     };
-  }
-
-  componentDidMount() {
-    Dispatch.later(320, () => {
-      this.setState({
-        selectedIndex: 1
-      });
-    });
   }
 
   handleKeyPress = (event: KeyPressEvent) => {
@@ -97,8 +91,8 @@ export default class Menu extends Component<MenuProps, MenuState> {
 export class Option extends Component<OptionProps> {
   static defaultProps = {
     backgroundColor: Color.Transparent,
-    selectedBackgroundColor: new Color(0.8, 0.95, 0.9, 0.25),
-    selected: false
+    selected: false,
+    padding: 10
   };
 
   render() {
@@ -106,24 +100,32 @@ export class Option extends Component<OptionProps> {
       return;
     }
 
-    const { at, size } = this.props;
-
-    const { backgroundColor, selectedBackgroundColor, selected } = this.props;
+    const { at, size, padding } = this.props;
 
     return (
       <Fragment>
-        <Rectangle
-          at={at.inherit()}
-          size={size.inherit()}
-          fillColor={selected ? selectedBackgroundColor : backgroundColor}
-        />
         {this.props.children &&
-          this.props.children
-            .filter(isElement)
-            .map(child =>
-              child.withProps({ at: at.inherit(), size: size.inherit() })
-            )}
+          this.props.children.filter(isElement).map(child =>
+            child.withProps({
+              at: at
+                .inherit()
+                .addX(padding!)
+                .addY(padding!),
+              size: size
+                .inherit()
+                .addW(-padding! * 2)
+                .addH(-padding! * 2)
+            })
+          )}
       </Fragment>
     );
+  }
+
+  getNaturalWidth() {
+    return super.getNaturalWidth() + this.props.padding! * 2;
+  }
+
+  getNaturalHeight() {
+    return super.getNaturalHeight() + this.props.padding! * 2;
   }
 }

@@ -9,7 +9,8 @@ import {
   Point,
   Component,
   isAspectRatioAware,
-  isElementComponent
+  isElementComponent,
+  Primitive
 } from 'kinetic';
 import { Nullable } from 'kinetic/build/main/lib/types';
 import Style from './Style';
@@ -25,8 +26,12 @@ interface FlowProps extends PositionProps, SizeProps, RefProps<Flow> {
   font?: Font;
 }
 
+export class Spacer extends Primitive<SizeProps> {}
+
 export default class Flow extends SurfaceHost<FlowProps> {
   static defaultProps = {
+    ...SurfaceHost.defaultProps,
+    blendOp: BlendOp.Replace,
     lineHeight: Font.Default.height,
     font: Font.Default
   };
@@ -42,7 +47,6 @@ export default class Flow extends SurfaceHost<FlowProps> {
     }
 
     if (isElementComponent(child, Style)) {
-      SSj.log('encountered style');
       return child.withProps({
         children: child.props.children!.map(this.renderChild)
       });
@@ -151,7 +155,7 @@ export default class Flow extends SurfaceHost<FlowProps> {
           this.props.font!.drawText(
             surface,
             x,
-            y,
+            y + (element.style.yOffset || 0),
             element.node,
             element.style.fontColor || Color.White
           );

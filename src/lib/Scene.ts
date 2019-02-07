@@ -11,6 +11,9 @@ export default class Scene {
     this.ui = director.getGame().getUI();
   }
 
+  sceneDidEnter() {}
+  sceneDidLeave() {}
+
   render(): Node | Array<Node> {
     return null;
   }

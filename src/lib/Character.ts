@@ -1,5 +1,4 @@
 import EquippedWeapon from './party/EquippedWeapon';
-import Element from './magic/Element';
 
 export interface CharacterDefaults {
   weapon: EquippedWeapon;
@@ -9,6 +8,7 @@ export interface CharacterDefaults {
 export default class Character {
   name: string;
   weapon: EquippedWeapon;
+
   // armor: EquippedArmor;
   // shield: EquippedShield;
   // accessories: EquippedAccessory[];
@@ -18,6 +18,10 @@ export default class Character {
     this.name = name;
     this.weapon = weapon;
     this.baseStats = baseStats;
+  }
+
+  stat(name: keyof CharacterStats): number {
+    return this.baseStats[name];
   }
 }
 
@@ -30,17 +34,17 @@ export interface CharacterStats {
   hit: number;
   eva: number;
 
-  elementalStr: {
-    [Element.FIRE]: number;
-    [Element.ICE]: number;
-    [Element.EARTH]: number;
-    [Element.AIR]: number;
-  };
+  hp: number;
+  hpMax: number;
+  mp: number;
+  mpMax: number;
 
-  elementalDef: {
-    [Element.FIRE]: number;
-    [Element.ICE]: number;
-    [Element.EARTH]: number;
-    [Element.AIR]: number;
-  };
+  fireStr: number;
+  iceStr: number;
+  earthStr: number;
+  airStr: number;
+  fireDef: number;
+  iceDef: number;
+  earthDef: number;
+  airDef: number;
 }

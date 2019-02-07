@@ -6,11 +6,13 @@ import Menu, { Option } from '../Menu';
 export interface PartyProps extends PositionProps, SizeProps {
   party: Party;
 }
-export default class PartyComponent extends Component<PartyProps> {
+export default class MainMenuParty extends Component<PartyProps> {
   render() {
+    const { at, size, party } = this.props;
+
     return (
-      <Menu at={this.props.at} size={this.props.size}>
-        {this.props.party.getCharacters().map(character => (
+      <Menu at={at!.inherit()} size={size!.inherit()}>
+        {party.getCharacters().map(character => (
           <Option>
             <Character character={character} />
           </Option>

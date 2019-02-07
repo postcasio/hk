@@ -83,6 +83,7 @@ export default function wrap(
 
   for (let i = 0; i < styled.length; i++) {
     const { style, child } = styled[i];
+    const childFont = style.font || font;
 
     if (isComponent(child)) {
       const size = (child.props as SizeProps).size!;
@@ -104,8 +105,8 @@ export default function wrap(
       const words = split(text);
 
       for (let word of words) {
-        const textSize = font.getTextSize(word);
-        const textSizeWithoutWhitespace = font.getTextSize(
+        const textSize = childFont.getTextSize(word);
+        const textSizeWithoutWhitespace = childFont.getTextSize(
           word.replace(/\s+$/, '')
         );
 

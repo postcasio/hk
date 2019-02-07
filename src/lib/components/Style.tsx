@@ -3,7 +3,10 @@ import { Component, PositionProps, SizeProps, Node } from 'kinetic';
 export interface StyleProps extends PositionProps, SizeProps {
   verticalAlign?: 'top' | 'middle' | 'bottom';
   fontColor?: Color;
+  font?: Font;
   children?: Array<Node>;
+  yOffset?: number;
+  width?: number;
 }
 
 export default class Style extends Component<StyleProps> {

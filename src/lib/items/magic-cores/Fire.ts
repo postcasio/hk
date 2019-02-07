@@ -1,5 +1,5 @@
 import MagicCore from '../MagicCore';
-import Element from '../../magic/Element';
+//import Element from '../../magic/Element';
 import uitheme from '../../uitheme';
 
 export default class Fire extends MagicCore {

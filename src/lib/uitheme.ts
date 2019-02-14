@@ -11,7 +11,7 @@ export default {
 
   controls: {
     window: {
-      background: c(0.1, 0.1, 0.1)
+      background: c(0, 0, 0, 0.2)
     }
   }
 };

@@ -4,12 +4,14 @@ import Kinetic, {
   SizeProps,
   Text,
   Size,
-  Fragment,
-  Line
+  Fragment
 } from 'kinetic';
 import Character from '../../Character';
 import Flow, { Spacer } from '../Flow';
 import Style from '../Style';
+
+const font = new Font('res/font/helvetica-22-regular.rfn');
+const smallFont = new Font('res/font/helvetica-18-regular.rfn');
 
 export interface CharacterProps extends PositionProps, SizeProps {
   character: Character;
@@ -18,41 +20,40 @@ export default class CharacterComponent extends Component<CharacterProps> {
   render() {
     const { at, size, character } = this.props;
 
-    const flowAt = at!.inherit();
-    const flowSize = size!.inherit();
+    const flowAt = at!.inherit().addX(40);
+    const flowSize = new Size(800, size!.h);
 
     return (
       <Fragment>
-        <Flow at={flowAt} size={flowSize} lineHeight={40}>
-          <Text content={character.name} size={new Size(60, Size.AUTO)} />
-          HP {character.stat('hp')}/
+        <Flow font={font} at={flowAt} size={flowSize} lineHeight={100}>
+          <Text
+            font={font}
+            content={character.name}
+            size={new Size(260, Size.AUTO)}
+          />
+          HP {character.stat('hp')}
           <Style
-            yOffset={2}
-            font={Font.Default}
+            yOffset={10}
+            font={smallFont}
             fontColor={new Color(1, 1, 1, 0.7)}
           >
-            {character.stat('hpMax')}
+            /{character.stat('hpMax')}
           </Style>
           <Spacer size={new Size(20, 0)} />
-          MP {character.stat('mp')}/
+          MP {character.stat('mp')}
           <Style
-            yOffset={2}
-            font={Font.Default}
+            yOffset={10}
+            font={smallFont}
             fontColor={new Color(1, 1, 1, 0.7)}
           >
-            {character.stat('mpMax')}
+            /{character.stat('mpMax')}
           </Style>
         </Flow>
-        <Line
-          at={at!
-            .inherit()
-            .addY(size!.h)
-            .addY(-1)}
-          size={new Size(size!.w, 1)}
-          fillColor={new Color(1, 1, 1, 0.9)}
-          fillColor2={new Color(1, 1, 1, 0.2)}
-        />
       </Fragment>
     );
+  }
+
+  getNaturalWidth() {
+    return 840;
   }
 }

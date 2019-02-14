@@ -1,66 +1,39 @@
 import Scene from '../Scene';
-import Kinetic, {
-  Fragment /*, { Point, Size, Text }*/,
-  Point,
-  Size
-} from 'kinetic';
-// import Menu, { Option } from '../components/Menu';
-import Cutscene from '../Cutscene';
-import MainMenuParty from '../components/MainMenu/Party';
-import Game from '../Game';
-import Director from '../Director';
-import { Disposable } from 'event-kit';
-import log from '../log';
+import Menu, { Option } from '../components/Menu';
+import Kinetic, { Point, Size, Text } from 'kinetic';
+import Map from './Map';
+import BMF from '../BMF';
+import CutsceneController from '../CutsceneController';
+
+const font = new BMF('res/font/helvetica-32-regular.fnt');
 
 export default class Title extends Scene {
-  private subscriptions: {
-    journalDidChangeActiveParty?: Disposable;
-  } = {};
+  sceneDidEnter() {}
 
-  constructor(director: Director) {
-    super(director);
+  draw() {}
 
-    this.subscriptions = {};
-  }
+  handleNewGameSelect = async () => {
+    const cutscene = new CutsceneController(
+      (await import('../../cutscenes/init')).default
+    );
 
-  sceneDidEnter() {
-    this.subscriptions.journalDidChangeActiveParty = Game.current
-      .getJournal()
-      .onDidChangeActiveParty(
-        this.handleJournalDidChangeActiveParty.bind(this)
-      );
-  }
+    await cutscene.exec();
 
-  sceneDidLeave() {
-    for (const disposable of Object.values(this.subscriptions)) {
-      if (disposable) {
-        disposable.dispose();
-      }
-    }
-  }
+    this.director.setScene(Map);
+  };
 
-  handleJournalDidChangeActiveParty() {
-    log.debug('re-rendering title');
-    this.ui.renderScene(this);
-  }
+  handleContinueSelect = () => {};
 
   render() {
-    const party = Game.current.getJournal().getActiveParty();
-
     return (
-      <Fragment>
-        {party && (
-          <MainMenuParty
-            at={new Point(Surface.Screen.width / 4, 0)}
-            size={Size.of(Surface.Screen).addW(Surface.Screen.width / -4)}
-            party={party}
-          />
-        )}
-        <Cutscene
-          script={import('../cutscenes/newgame')}
-          onComplete={() => {}}
-        />
-      </Fragment>
+      <Menu at={new Point(50, 50)} size={Size.auto}>
+        <Option onSelect={this.handleNewGameSelect}>
+          <Text font={font} content="New Game" />
+        </Option>
+        <Option onSelect={this.handleContinueSelect}>
+          <Text font={font} content="Continue" />
+        </Option>
+      </Menu>
     );
   }
 }

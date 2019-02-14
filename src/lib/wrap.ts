@@ -1,6 +1,15 @@
-import { Component, Size, SizeProps, Point, ComponentChild } from 'kinetic';
+import {
+  Component,
+  Size,
+  SizeProps,
+  Point,
+  ComponentChild,
+  IFont
+} from 'kinetic';
 import Style, { StyleProps } from './components/Style';
 import { isComponent } from 'kinetic/build/module/lib/Component';
+import { Break } from './components/Flow';
+// import log from './log';
 
 export interface WrappedElement {
   node: Component | string;
@@ -46,7 +55,7 @@ function flattenStyle(
 
 export default function wrap(
   children: Array<ComponentChild>,
-  font: Font,
+  font: IFont,
   width: number,
   lineHeight: number,
   style: StyleProps = {}
@@ -86,6 +95,11 @@ export default function wrap(
     const childFont = style.font || font;
 
     if (isComponent(child)) {
+      if (child instanceof Break) {
+        nextLine();
+        continue;
+      }
+
       const size = (child.props as SizeProps).size!;
 
       if (!wouldFit(size)) {
@@ -117,12 +131,13 @@ export default function wrap(
 
         if (!wouldFit(sizeWithoutWhitespace)) {
           nextLine();
+          word = word.replace(/^\s+/, '');
         }
 
         const size = new Size(textSize.width, textSize.height);
 
         currentLine.elements.push({
-          node: word.trim(),
+          node: word,
           size,
           style,
           at: new Point(x, y)
@@ -144,7 +159,12 @@ function split(text: string): Array<string> {
   const matches = text.match(/\S+(\s+)?/g);
 
   if (matches) {
-    return Array.from(matches);
+    const matchArray = Array.from(matches);
+    if (/^\s+/.test(text)) {
+      matchArray[0] = ' ' + matchArray[0];
+    }
+
+    return matchArray;
   }
 
   return [text];

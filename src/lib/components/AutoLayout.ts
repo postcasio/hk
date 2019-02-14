@@ -12,7 +12,7 @@ import {
 import AutoLayoutJs from 'autolayout';
 import Kinetic from 'kinetic';
 import { ComponentClass } from 'kinetic/build/module/lib/Component';
-import lodash from 'lodash';
+import omit from 'lodash/omit';
 
 const View: typeof AutoLayoutJs.View = AutoLayoutJs.View;
 const VisualFormat: typeof AutoLayoutJs.VisualFormat =
@@ -58,8 +58,6 @@ export default class AutoLayout extends Component<AutoLayoutProps> {
   }
 
   draw(target: Surface) {
-    SSj.log('AutoLayout is drawing');
-
     for (const child of this.components) {
       if (isSubview(child)) {
         const subviewProps: SubviewProps = child.props as SubviewProps;
@@ -77,7 +75,6 @@ export default class AutoLayout extends Component<AutoLayoutProps> {
           }
           if (subviewProps.autoHeight) {
             subview.intrinsicHeight = child.getNaturalHeight();
-            SSj.log(`setting intrinsic height to ${child.getNaturalHeight()}`);
           }
         }
       }
@@ -135,7 +132,7 @@ export function subview<P extends {}, S extends {}>(
       return Kinetic.createElement(
         wrappedComponent,
         {
-          ...(lodash.omit(this.props, [
+          ...(omit(this.props, [
             'constrain',
             'children',
             'name',

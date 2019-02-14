@@ -13,6 +13,7 @@ export default class Scene {
 
   sceneDidEnter() {}
   sceneDidLeave() {}
+  draw(): void {}
 
   render(): Node | Array<Node> {
     return null;

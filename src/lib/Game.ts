@@ -37,7 +37,6 @@ export default class Game {
     try {
       callback();
     } catch (e) {
-      SSj.log(e);
       throw e;
     }
   }
@@ -45,6 +44,7 @@ export default class Game {
   attachLifecycleHooks() {
     Dispatch.onRender(() => {
       this.handleErrors(() => {
+        this.director.draw();
         this.ui.draw();
       });
     });
@@ -62,5 +62,9 @@ export default class Game {
 
   getJournal() {
     return this.journal;
+  }
+
+  getDirector() {
+    return this.director;
   }
 }

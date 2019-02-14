@@ -10,23 +10,23 @@ import {
   Component,
   isAspectRatioAware,
   isElementComponent,
-  Primitive
+  Primitive,
+  isComponent,
+  IFont
 } from 'kinetic';
-import { Nullable } from 'kinetic/build/main/lib/types';
 import Style from './Style';
-import {
-  isComponentClass,
-  isComponent
-} from 'kinetic/build/module/lib/Component';
 import wrap, { WrappedLine, WrappedElement } from '../wrap';
+// import { DefaultKeepSourceAlphaBlendOp } from 'kinetic/build/module/lib/prim/SurfaceHost';
 
 interface FlowProps extends PositionProps, SizeProps, RefProps<Flow> {
   children?: Array<Node>;
   lineHeight?: number;
-  font?: Font;
+  font?: IFont;
 }
 
 export class Spacer extends Primitive<SizeProps> {}
+
+export class Break extends Primitive {}
 
 export default class Flow extends SurfaceHost<FlowProps> {
   static defaultProps = {
@@ -51,15 +51,11 @@ export default class Flow extends SurfaceHost<FlowProps> {
         children: child.props.children!.map(this.renderChild)
       });
     } else {
-      SSj.log(
-        `encountered ${isComponentClass(child.component) &&
-          child.component.name}`
-      );
       return child.withProps({
         at: new Point(0, 0),
         size:
           child.props.size ||
-          new Size((component: Nullable<Component>) => {
+          new Size((component: Component | null) => {
             if (
               isAspectRatioAware(component) &&
               component.shouldMaintainAspectRatio()
@@ -86,7 +82,6 @@ export default class Flow extends SurfaceHost<FlowProps> {
       return;
     }
 
-    SSj.log('Recalculating flow at width: ' + w);
     const wrapped = wrap(
       this.children,
       this.props.font!,
@@ -105,8 +100,6 @@ export default class Flow extends SurfaceHost<FlowProps> {
     if (w <= 0) {
       return;
     }
-
-    SSj.log('Repositioning flow at width: ' + w);
 
     const wrapped = wrap(
       this.children,
@@ -128,15 +121,7 @@ export default class Flow extends SurfaceHost<FlowProps> {
     const { w, h } = this.props.size.resolve();
     const surface = this.prepareSurface(w, h);
 
-    SSj.log(
-      `Rendering a Flow of ${this.wrapped.length} lines on a ${w}x${h} surface`
-    );
-
     for (const line of this.wrapped) {
-      SSj.log(
-        `Line of ${line.elements.length} elements, height ${line.lineHeight}`
-      );
-
       for (const element of line.elements) {
         if (isComponent(element.node)) {
           (element.node.props as PositionProps).at!.replaceWith(
@@ -151,29 +136,32 @@ export default class Flow extends SurfaceHost<FlowProps> {
             .inherit()
             .addY(offset(element, line.lineHeight))
             .resolve();
-
-          this.props.font!.drawText(
+          const prevOp = surface.blendOp;
+          surface.blendOp = BlendOp.Add;
+          (element.style.font || this.props.font)!.drawText(
             surface,
             x,
             y + (element.style.yOffset || 0),
             element.node,
             element.style.fontColor || Color.White
           );
+          surface.blendOp = prevOp;
         }
       }
     }
 
-    if (
-      !this.repositioning &&
-      this._kinetic.hasRootComponent() &&
-      !this._kinetic.isRootComponent(this)
-    ) {
-      this._kinetic.scheduleDraw(this.getSurfaceHost()!);
+    if (this._shouldScheduleSurfaceHostDraw) {
+      if (
+        !this.repositioning &&
+        this._kinetic.hasRootComponent() &&
+        !this._kinetic.isRootComponent(this)
+      ) {
+        this._kinetic.scheduleDraw(this.getSurfaceHost()!);
+      }
     }
   }
 
   getNaturalHeight() {
-    SSj.log('Getting natural height of a Flow');
     return this.wrapped
       ? this.wrapped.reduce((height, line) => height + line.lineHeight, 0)
       : 0;

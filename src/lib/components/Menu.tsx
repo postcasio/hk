@@ -9,9 +9,13 @@ import Kinetic, {
   Element,
   isElement,
   Focused,
-  KeyPressEvent
+  KeyPressEvent,
+  Size,
+  Line,
+  isElementComponent
 } from 'kinetic';
 import uitheme from '../uitheme';
+import Arrow from './Arrow';
 
 interface MenuProps extends PositionProps, SizeProps {
   children?: Array<Element>;
@@ -24,6 +28,7 @@ interface OptionProps extends PositionProps, SizeProps {
   selectedBackgroundColor?: Color;
   children?: Array<Node>;
   selected?: boolean;
+  index?: number;
   padding?: number;
 }
 
@@ -48,6 +53,22 @@ export default class Menu extends Component<MenuProps, MenuState> {
 
   handleKeyPress = (event: KeyPressEvent) => {
     switch (event.key) {
+      case Key.Enter:
+        const selected = this.props.children![this.state.selectedIndex];
+        if (isElementComponent(selected, Option)) {
+          selected.props.onSelect!();
+        }
+        break;
+      case Key.Down:
+        this.setState({
+          selectedIndex: this.state.selectedIndex + 1
+        });
+        break;
+      case Key.Up:
+        this.setState({
+          selectedIndex: this.state.selectedIndex - 1
+        });
+        break;
     }
   };
 
@@ -63,11 +84,11 @@ export default class Menu extends Component<MenuProps, MenuState> {
     const size = this.props.size;
 
     return (
-      <Focused onKeyPress={this.handleKeyPress}>
+      <Focused
         onKeyPress={this.handleKeyPress}
         at={at.inherit()}
         size={size.inherit()}
-        >
+      >
         <Rectangle
           at={at.inherit()}
           size={size.inherit()}
@@ -76,15 +97,11 @@ export default class Menu extends Component<MenuProps, MenuState> {
         <Layout flow="vertical" at={at.inherit()} size={size.inherit()}>
           {this.props.children &&
             this.props.children.map((child, index) =>
-              child.withProps({ selected: selectedIndex === index })
+              child.withProps({ index, selected: selectedIndex === index })
             )}
         </Layout>
       </Focused>
     );
-  }
-
-  componentDidUpdate() {
-    SSj.log(this.components.map(component => component.constructor.name));
   }
 }
 
@@ -100,7 +117,7 @@ export class Option extends Component<OptionProps> {
       return;
     }
 
-    const { at, size, padding } = this.props;
+    const { at, size, padding, selected } = this.props;
 
     return (
       <Fragment>
@@ -117,6 +134,40 @@ export class Option extends Component<OptionProps> {
                 .addH(-padding! * 2)
             })
           )}
+
+        {this.props.index === 0 && (
+          <Line
+            at={at!.inherit()}
+            to={at!.inherit().addX(size!.w)}
+            fillColor={new Color(1, 1, 1, 0.9)}
+            fillColor2={new Color(1, 1, 1, 0.2)}
+            width={2}
+          />
+        )}
+        <Line
+          at={at!
+            .inherit()
+            .addY(size!.h)
+            .addY(-1)}
+          to={at!
+            .inherit()
+            .addY(size!.h)
+            .addY(-1)
+            .addX(size!.w)}
+          fillColor={new Color(1, 1, 1, 0.9)}
+          fillColor2={new Color(1, 1, 1, 0)}
+          width={2}
+        />
+
+        {selected && (
+          <Arrow
+            at={at
+              .inherit()
+              .addY(() => size.h() / 2 - 8)
+              .addX(-20)}
+            size={new Size(16, 16)}
+          />
+        )}
       </Fragment>
     );
   }

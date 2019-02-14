@@ -5,6 +5,6 @@
   "saveID": "casiotone.hk",
   "author": "casiotone",
   "summary": "kinetic game",
-  "resolution": "426x240",
+  "resolution": "1280x720",
   "main": "@/build/bundles/index.js"
 }

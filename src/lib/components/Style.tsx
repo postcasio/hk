@@ -1,9 +1,9 @@
-import { Component, PositionProps, SizeProps, Node } from 'kinetic';
+import { Component, PositionProps, SizeProps, Node, IFont } from 'kinetic';
 
 export interface StyleProps extends PositionProps, SizeProps {
   verticalAlign?: 'top' | 'middle' | 'bottom';
   fontColor?: Color;
-  font?: Font;
+  font?: IFont;
   children?: Array<Node>;
   yOffset?: number;
   width?: number;

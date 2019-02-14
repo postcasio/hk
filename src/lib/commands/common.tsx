@@ -1,19 +1,11 @@
 import Kinetic, { Node, Point, Size, Image } from 'kinetic';
-import CutsceneController, { ObjectClaim } from '../CutsceneController';
+import CutsceneController from '../CutsceneController';
 import Message from '../components/Message';
 import Journal from '../Journal';
 import Game from '../Game';
 
-export function pause(frames: number) {
-  return function(this: CutsceneController): Promise<void> {
-    return Sphere.sleep(frames);
-  };
-}
-
 export function addUIElement(element: Array<Node> | Node) {
-  return function(this: CutsceneController): ObjectClaim {
-    return this.addUIElement(element);
-  };
+  Game.current.getUI().addElement(element);
 }
 
 export function message(
@@ -33,33 +25,27 @@ export function message(
     block?: boolean;
     closeable?: boolean;
   }
-) {
-  return function(this: CutsceneController): Promise<ObjectClaim> {
-    return new Promise((resolve, _reject) => {
-      SSj.log('called message func');
-      const messageComponent = this.addUIElement(
-        <Message
-          at={new Point(x, y)}
-          size={new Size(w, h || Size.AUTO)}
-          onClose={closeable ? close : undefined}
-        >
-          {content}
-        </Message>
-      );
-      SSj.log('created message');
+): Promise<{ release: () => void }> {
+  return new Promise((resolve, _reject) => {
+    const messageComponent = Game.current.getUI().addElement(
+      <Message
+        at={new Point(x, y)}
+        size={new Size(w, h || Size.AUTO)}
+        onClose={closeable ? close : undefined}
+      >
+        {content}
+      </Message>
+    );
 
-      function close() {
-        messageComponent.release();
-        resolve(messageComponent);
-        SSj.log('aclled message close callback');
-      }
+    function close() {
+      messageComponent.release();
+      resolve(messageComponent);
+    }
 
-      if (!block) {
-        SSj.log('resolving message component');
-        resolve(messageComponent);
-      }
-    });
-  };
+    if (!block) {
+      resolve(messageComponent);
+    }
+  });
 }
 
 export function image(
@@ -76,15 +62,15 @@ export function image(
     h?: number;
   }
 ) {
-  return async function(this: CutsceneController) {
-    return this.addUIElement(
+  return Game.current
+    .getUI()
+    .addElement(
       <Image
         src={src}
         at={new Point(x, y)}
         size={new Size(w || Size.AUTO, h || Size.AUTO)}
       />
     );
-  };
 }
 
 export function withJournal(callback: (journal: Journal) => any) {
@@ -93,4 +79,8 @@ export function withJournal(callback: (journal: Journal) => any) {
 
     return callback(journal);
   };
+}
+
+export function sleep(frames: number): Promise<void> {
+  return Sphere.sleep(frames);
 }

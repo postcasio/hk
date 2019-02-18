@@ -8,16 +8,11 @@ import Kinetic, {
   IFont
 } from 'kinetic';
 import Flow from './Flow';
-import Prim from 'prim';
-import clipTo from '../clip';
 import BMF from '../BMF';
+import Game from '../Game';
 
-const backgroundColor1 = new Color(0.5, 0.6, 0.9, 0.9);
-const backgroundColor2 = new Color(0.1, 0.12, 0.3, 0.6);
-const backgroundColor3 = new Color(0.1, 0.12, 0.3, 0.6);
-const borderColor = new Color(1, 1, 1, 1);
-const borderColor2 = new Color(1, 1, 1, 0.1);
-
+const windowImage = new Texture('res/image/window-bg.png');
+const cornerImage = new Texture('res/image/window-border-cut.png');
 interface MessageProps extends PositionProps, SizeProps {
   children?: Array<Node>;
   font?: IFont;
@@ -42,50 +37,51 @@ export default class Message extends Component<MessageProps> {
 
   draw(target: Surface) {
     const { at, size } = this.props;
+
     const { x, y } = at!.resolve();
     const { w, h } = size!.resolve();
-    const prevOp = target.blendOp;
-    target.blendOp = BlendOp.Replace;
-    Prim.drawSolidRectangle(target, x, y, w, h - 10, backgroundColor3);
-    clipTo(target, x, y, w, h - 10, () => {
-      Prim.drawSolidEllipse(
-        target,
-        x + w / 2,
-        y + h,
-        w / 2,
-        h / 2,
-        backgroundColor1,
-        backgroundColor2
-      );
-    });
-    target.blendOp = prevOp;
 
-    Prim.drawLine(
-      target,
-      x,
-      y + h - 10,
-      x + w / 2,
-      y + h - 10,
-      2,
-      borderColor2,
-      borderColor
-    );
-    Prim.drawLine(
-      target,
-      x + w / 2,
-      y + h - 10,
-      x + w,
-      y + h - 10,
-      2,
-      borderColor,
-      borderColor2
-    );
+    const prevOp = target.blendOp;
+    const mask = new Color(1, 1, 1, 1);
+    const zoom = Game.current.config.globalPixelZoom;
+
+    // Draw tiled background
+
+    const u2 = w / windowImage.width / zoom;
+    const v1 = 1 - h / windowImage.height / zoom;
+    const v2 = 1;
+    let x2 = x + w;
+    let y2 = y + h;
+
+    Shape.drawImmediate(target, ShapeType.TriStrip, windowImage, [
+      { x: x, y: y, u: 0, v: v2, color: mask },
+      { x: x2, y: y, u: u2, v: v2, color: mask },
+      { x: x, y: y2, u: 0, v: v1, color: mask },
+      { x: x2, y: y2, u: u2, v: v1, color: mask }
+    ]);
+
+    // Subtract the corners
+
+    x2 = x + cornerImage.width * zoom;
+    y2 = y + cornerImage.height * zoom;
+
+    target.blendOp = BlendOp.Subtract;
+
+    Shape.drawImmediate(target, ShapeType.TriStrip, cornerImage, [
+      { x: x, y: y, u: 0, v: 1, color: mask },
+      { x: x2, y: y, u: 1, v: 1, color: mask },
+      { x: x, y: y2, u: 0, v: 0, color: mask },
+      { x: x2, y: y2, u: 1, v: 0, color: mask }
+    ]);
+
+    target.blendOp = prevOp;
 
     super.draw(target);
   }
 
   render() {
     const { font } = this.props;
+
     return (
       <Focused onKeyPress={this.handleKeyPress}>
         <Flow
@@ -112,6 +108,6 @@ export default class Message extends Component<MessageProps> {
   }
 
   getNaturalHeight() {
-    return this.flow ? this.flow.getNaturalHeight() + 30 : 0;
+    return this.flow ? this.flow.getNaturalHeight() + 20 : 0;
   }
 }

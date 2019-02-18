@@ -1,4 +1,20 @@
 import log from '../log';
+import { Box } from './Physics';
+import { MapFileObject } from './ObjectLayer';
+
+export interface TilesetFileTile {
+  id: number;
+  objectgroup: {
+    draworder: string;
+    name: string;
+    objects: MapFileObject[];
+    opacity: number;
+    type: string;
+    visible: boolean;
+    x: number;
+    y: number;
+  };
+}
 
 export interface TilesetFile {
   columns: number;
@@ -13,6 +29,13 @@ export interface TilesetFile {
   tilewidth: number;
   type: 'tileset';
   version: number;
+  tiles?: TilesetFileTile[];
+}
+
+export interface Tile {
+  index: number;
+  box?: Box;
+  properties: { [k: string]: any; oneway?: boolean };
 }
 
 export default class Tileset {
@@ -30,6 +53,7 @@ export default class Tileset {
   tilecount: number;
   columns: number;
   margin: number;
+  tiles: Map<number, Tile>;
 
   constructor(path: string, firstgid: number) {
     log.debug(`Loading tileset: ${path}`);
@@ -52,6 +76,42 @@ export default class Tileset {
     this.tilecount = this.tilesetData.tilecount;
     this.columns = this.tilesetData.columns;
     this.margin = this.tilesetData.margin;
+    this.tiles = new Map(
+      this.tilesetData.tiles!.map(
+        (tile): [number, Tile] => {
+          let box: Box | undefined = undefined;
+          let properties: { [k: string]: any } = {};
+
+          if (tile.objectgroup.objects.length) {
+            const object = tile.objectgroup.objects[0];
+            const halfw = object.width / 2;
+            const halfh = object.height / 2;
+            box = {
+              center: { x: object.x + halfw, y: object.y + halfh },
+              halfSize: { x: halfw, y: halfh }
+            };
+            properties = object.properties
+              ? object.properties.reduce(
+                  (props, { name, type, value }) => {
+                    props[name] = value;
+
+                    return props;
+                  },
+                  {} as { [k: string]: any }
+                )
+              : {};
+          }
+          return [
+            tile.id,
+            {
+              index: tile.id,
+              box,
+              properties
+            }
+          ];
+        }
+      )
+    );
   }
 
   lookupTile(
@@ -66,5 +126,23 @@ export default class Tileset {
     out.h = this.tileheight;
 
     return true;
+  }
+
+  getTile(id: number): Tile | null {
+    const index = id - this.firstgid;
+    const tile = this.tiles.get(index);
+
+    return tile
+      ? {
+          box: tile.box
+            ? {
+                center: { ...tile.box.center },
+                halfSize: { ...tile.box.halfSize }
+              }
+            : undefined,
+          properties: tile.properties,
+          index: tile.index
+        }
+      : null;
   }
 }

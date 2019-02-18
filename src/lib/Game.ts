@@ -5,6 +5,7 @@ import Journal from './Journal';
 
 export interface GameConfig {
   initialScene: typeof Scene;
+  globalPixelZoom: number;
 }
 
 export const defaultConfig: Partial<GameConfig> = {};
@@ -51,6 +52,7 @@ export default class Game {
 
     Dispatch.onUpdate(() => {
       this.handleErrors(() => {
+        this.director.update();
         this.ui.update();
       });
     });

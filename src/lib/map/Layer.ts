@@ -1,6 +1,8 @@
-import Tileset from './Tileset';
+import Tileset, { Tile } from './Tileset';
 import Map from './Map';
-import { MapFileObject } from './ObjectLayer';
+import { MapFileObject, MapObject } from './ObjectLayer';
+import { boxOffset } from './Physics';
+import log from '../log';
 
 const FLIPPED_HORIZONTALLY_FLAG = 0x80000000;
 const FLIPPED_VERTICALLY_FLAG = 0x40000000;
@@ -34,12 +36,14 @@ export default class Layer {
   x: number;
   y: number;
   shape?: Shape;
-  objects?: null = null;
+  objects?: MapObject[];
+  name: string;
 
   constructor(map: Map, layerData: MapFileLayer) {
     this.map = map;
     this.layerData = layerData;
 
+    this.name = layerData.name;
     this.width = layerData.width;
     this.height = layerData.height;
     this.tiles = layerData.data;
@@ -206,4 +210,30 @@ export default class Layer {
 
   //   return (this.model = new Model(shapes));
   // }
+
+  getTileAt(xpix: number, ypix: number): Tile | null {
+    const tw = this.map.tilewidth;
+    const th = this.map.tileheight;
+
+    const x = Math.floor(xpix / tw);
+    const y = Math.floor(ypix / th);
+
+    const i = y * this.width + x;
+    const gid =
+      this.tiles[i] &
+      ~(
+        FLIPPED_DIAGONALLY_FLAG |
+        FLIPPED_HORIZONTALLY_FLAG |
+        FLIPPED_VERTICALLY_FLAG
+      );
+
+    const tile = this.map.getTile(gid);
+
+    if (tile && tile.box) {
+      log.debug(`applying offset to tile box: ${x * tw},${y * th}`);
+      tile.box = boxOffset(tile.box, x * tw, y * th);
+    }
+
+    return tile;
+  }
 }

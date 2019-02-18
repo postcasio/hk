@@ -1,15 +1,14 @@
-import Tileset from './Tileset';
+import Tileset, { Tile } from './Tileset';
 import { MapFile } from './Engine';
 import Layer from './Layer';
 import Camera from './Camera';
 import ObjectLayer from './ObjectLayer';
-import Prim from 'prim';
 import './entities';
 import Entity from './entities/Entity';
 import CutsceneController from '../CutsceneController';
 import log from '../log';
-
-const DEBUG = true;
+import Game from '../Game';
+import Actor from './entities/Actor';
 
 export default class Map_ {
   mapData: MapFile | null = null;
@@ -28,6 +27,7 @@ export default class Map_ {
     cutsceneEnter?: string;
     cutsceneLeave?: string;
   };
+  lastFrame: number = 0;
 
   constructor(path: string) {
     log.debug(`Loading map: ${path}`);
@@ -48,10 +48,14 @@ export default class Map_ {
       return tileset;
     });
 
+    const layerMap: Map<string, Layer> = new Map();
+
     this.layers = this.mapData!.layers.map(layer => {
       switch (layer.type) {
         case 'tilelayer':
-          return new Layer(this, layer);
+          const layerInst = new Layer(this, layer);
+          layerMap.set(layer.name, layerInst);
+          return layerInst;
         case 'objectgroup':
           return new ObjectLayer(this, layer);
         default:
@@ -60,9 +64,25 @@ export default class Map_ {
     });
 
     for (let layer of this.layers) {
-      if (layer instanceof ObjectLayer) {
+      if (layer instanceof ObjectLayer && layer.objects) {
         for (const object of layer.objects) {
-          this.entities.set(object.name, Entity.createFromObject(object));
+          const entity = Entity.createFromObject(object);
+          entity.setMap(this);
+          const desiredLayerName = object.properties.layer;
+          if (desiredLayerName) {
+            const desiredLayer = layerMap.get(String(desiredLayerName));
+            if (!desiredLayer) {
+              throw new Error(
+                `Entity ${object.name} has non-existent layer ${String(
+                  desiredLayerName
+                )}`
+              );
+            }
+            entity.setLayer(desiredLayer);
+          } else {
+            entity.setLayer(layer);
+          }
+          this.entities.set(object.name, entity);
         }
       }
     }
@@ -84,49 +104,47 @@ export default class Map_ {
       return;
     }
 
+    const zoom = camera.zoom * Game.current.config.globalPixelZoom;
+
     for (const layer of this.layers) {
+      if (!layer.visible) {
+        continue;
+      }
+
       if (layer.shape && layer.surface) {
         const transform = new Transform();
 
-        const sx = camera.zoom * layer.surface.width;
-        const sy = camera.zoom * layer.surface.height;
+        const sx = zoom * layer.surface.width;
+        const sy = zoom * layer.surface.height;
 
-        const x = -(camera.x * camera.zoom - camera.frameW / 2) + camera.frameX;
-        const y = -(camera.y * camera.zoom - camera.frameH / 2) + camera.frameY;
+        const x = -(camera.x * zoom - camera.frameW / 2) + camera.frameX;
+        const y = -(camera.y * zoom - camera.frameH / 2) + camera.frameY;
 
         transform.scale(sx, sy);
         transform.translate(x, y);
 
         layer.shape!.draw(surface, transform);
-      } else if (layer.objects && DEBUG) {
-        const objects = layer.objects!;
+      } else if (layer.objects) {
+        for (const entity of this.entities.values()) {
+          if (!(entity instanceof Actor)) {
+            continue;
+          }
 
-        for (const obj of objects) {
-          const sx =
-            camera.frameX +
-            camera.frameW / 2 +
-            (obj.x - camera.x) * camera.zoom;
-          const sy =
-            camera.frameY +
-            camera.frameH / 2 +
-            (obj.y - camera.y) * camera.zoom;
+          const transform = new Transform();
 
-          Prim.drawSolidEllipse(
-            surface,
-            sx,
-            sy,
-            5,
-            5,
-            Color.White,
-            new Color(1, 1, 1, 0.2)
+          const sx = zoom * entity.width;
+          const sy = zoom * entity.height;
+
+          const x = -(camera.x * zoom - camera.frameW / 2) + camera.frameX;
+          const y = -(camera.y * zoom - camera.frameH / 2) + camera.frameY;
+
+          transform.scale(sx, sy);
+          transform.translate(
+            x + (entity.x - entity.box.halfSize.x) * zoom,
+            y + (entity.y - entity.box.halfSize.y) * zoom
           );
 
-          Font.Default.drawText(
-            surface,
-            sx,
-            sy - Font.Default.height,
-            obj.name
-          );
+          entity.draw(surface, transform, zoom);
         }
       }
     }
@@ -145,6 +163,16 @@ export default class Map_ {
     }
 
     return false;
+  }
+
+  getTile(id: number): Tile | null {
+    for (let i = this.tilesets.length - 1; i >= 0; i--) {
+      if (this.tilesets[i].firstgid <= id) {
+        return this.tilesets[i].getTile(id);
+      }
+    }
+
+    return null;
   }
 
   findEntity(name: string): Entity | undefined {
@@ -177,5 +205,29 @@ export default class Map_ {
       );
       await controller.exec();
     }
+  }
+
+  update() {
+    const now = Sphere.now();
+    const last = this.lastFrame;
+    this.lastFrame = now;
+
+    if (last === 0) {
+      return;
+    }
+
+    const delta = now - last;
+
+    for (const entity of this.entities.values()) {
+      if (!(entity instanceof Actor)) {
+        continue;
+      }
+      entity.update(delta);
+    }
+  }
+
+  addEntity(entity: Entity) {
+    entity.setMap(this);
+    this.entities.set(entity.name, entity);
   }
 }

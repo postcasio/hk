@@ -45,4 +45,8 @@ export default class Director {
       this.scene.draw();
     }
   }
+
+  update() {
+    this.mapEngine.update();
+  }
 }

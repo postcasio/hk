@@ -3,6 +3,7 @@ import Map_ from './Map';
 import Camera from './Camera';
 import clipTo from '../clip';
 import CameraEntity from './entities/Camera';
+import Prim from 'prim';
 
 export interface MapFileTilesetReference {
   firstgid: number;
@@ -97,8 +98,28 @@ export default class Engine {
       camera.frameW,
       camera.frameH,
       () => {
+        let c1 = new Color(0.129, 0, 0.278);
+        let c2 = new Color(0.027, 0, 0.278);
+
+        Prim.drawSolidRectangle(
+          surface,
+          camera!.frameX,
+          camera!.frameY,
+          camera!.frameW,
+          camera!.frameH,
+          c1,
+          c1,
+          c2,
+          c2
+        );
         this.map!.draw(surface, camera!);
       }
     );
+  }
+
+  update() {
+    if (this.map) {
+      this.map.update();
+    }
   }
 }

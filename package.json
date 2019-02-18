@@ -39,7 +39,7 @@
     "start": "run-s build && run-s bundle && ../minisphere-5.3/SpheRun --verbose 0 game.json",
     "restart": "../minisphere-5.3/SpheRun --verbose 0 game.json",
     "debug": "../minisphere-5.3/SSj --connect",
-    "zip": "run-s build && run-s bundle && zip build/release.zip build/bundles/* res/**/* game.json"
+    "zip": "run-s build && run-s bundle && zip build/release.zip build/bundles/* build/bundles/*/* res/**/* res/*/*/* game.json"
   },
   "scripts-info": {
     "info": "Display information about the package scripts",
@@ -74,6 +74,8 @@
     "load-bmfont": "^1.4.0",
     "lodash": "^4.17.11",
     "parse-bmfont-ascii": "^1.0.6",
+    "rollup-plugin-terser": "^4.0.4",
+    "rollup-plugin-uglify": "^6.0.2",
     "sha.js": "^2.4.11",
     "util-inspect": "^0.1.8",
     "winston": "^3.2.1",

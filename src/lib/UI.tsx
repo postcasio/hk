@@ -1,16 +1,40 @@
-import Kinetic, { Point, Size, SurfaceHost, Component, Node } from 'kinetic';
+import Kinetic, {
+  Point,
+  Size,
+  SurfaceHost,
+  Component,
+  Node,
+  RefProps
+} from 'kinetic';
 import Game from './Game';
 import Scene from './Scene';
 import log from './log';
 
 // Pass-through component, just to ensure that changing scene render or elements causes components to unmount
-class UIContainer extends Component {}
+
+interface UIContainerState {
+  elements: ElementHandle[];
+}
+class UIContainer extends Component<RefProps<UIContainer>, UIContainerState> {
+  getInitialState() {
+    return { elements: [] };
+  }
+  render() {
+    return this.state.elements.map(handle => handle.element);
+  }
+}
+
+interface ElementHandle {
+  id: number;
+  element: Node;
+}
 
 export default class UI {
   kinetic: Kinetic;
   game: Game;
 
-  private _elements: { id: number; element: Node }[] = [];
+  private _elements: ElementHandle[] = [];
+  private elementsui?: UIContainer;
 
   renderScene(scene: Scene) {
     log.debug('Rendering scene: ' + scene.constructor.name);
@@ -20,8 +44,8 @@ export default class UI {
         at={Point.zero}
         size={Size.of(Surface.Screen)}
       >
-        <UIContainer>{scene.render()}</UIContainer>
-        <UIContainer>{this.renderElements()}</UIContainer>
+        {scene.render()}
+        <UIContainer ref={elementsui => (this.elementsui = elementsui)} />
       </SurfaceHost>
     );
   }
@@ -54,14 +78,18 @@ export default class UI {
       element
     });
 
+    this.elementsui!.setState({
+      elements: this._elements
+    });
+
     return {
       release: () => {
-        this._elements = this._elements.filter(e => e.id === id);
+        this._elements = this._elements.filter(e => e.id !== id);
+
+        this.elementsui!.setState({
+          elements: this._elements
+        });
       }
     };
-  }
-
-  renderElements() {
-    return this._elements.map(e => e.element);
   }
 }

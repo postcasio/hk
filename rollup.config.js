@@ -1,6 +1,7 @@
 import pluginNodeResolve from 'rollup-plugin-node-resolve';
 import pluginCommonJs from 'rollup-plugin-commonjs';
 import pluginBabel from 'rollup-plugin-babel';
+import { terser as pluginTerser } from 'rollup-plugin-terser';
 
 import glob from 'glob';
 
@@ -28,5 +29,6 @@ export default {
     pluginBabel({
       // exclude: 'node_modules/**'
     })
+    // pluginTerser()
   ]
 };

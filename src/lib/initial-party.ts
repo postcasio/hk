@@ -2,12 +2,14 @@ import Party from './Party';
 import Character from './Character';
 import Shortsword from './items/weapons/Shortsword';
 import EquippedWeapon from './party/EquippedWeapon';
+import Sprite from './Sprite';
 
 export function createInitialParty() {
   const party = new Party();
   for (const characterName of ['Elvis', 'Buddy', 'Michael']) {
     party.addCharacter(
       new Character(characterName, {
+        sprite: new Sprite('res/sprite/blueman.json'),
         weapon: new EquippedWeapon(new Shortsword()),
         baseStats: {
           str: 40,

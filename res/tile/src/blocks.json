@@ -1,4 +1,10 @@
 { "columns":10,
+ "grid":
+    {
+     "height":16,
+     "orientation":"orthogonal",
+     "width":16
+    },
  "image":"blocks.png",
  "imageheight":320,
  "imagewidth":320,

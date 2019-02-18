@@ -22,6 +22,10 @@ export default class Party {
     return [...this.characters];
   }
 
+  getPointCharacter(): Character {
+    return this.characters[0];
+  }
+
   setFunds(funds: number): this {
     this.funds = funds;
 

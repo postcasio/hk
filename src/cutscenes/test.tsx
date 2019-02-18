@@ -12,15 +12,15 @@ export default async function newgame(game: Game): Promise<any> {
   const map = getMap();
 
   const cutsceneCameraMarker = map.findEntity(
-    'cutsceneCameraMarker'
+    'cutsceneCamera1'
   ) as CameraMarker;
   const cutsceneCameraMarker2 = map.findEntity(
-    'cutsceneCameraMarker2'
+    'cutsceneCamera2'
   ) as CameraMarker;
 
-  await panToCameraMarker(cutsceneCameraMarker, 120);
+  panToCameraMarker(cutsceneCameraMarker, 120);
 
-  await sleep(60);
+  // await sleep(60);
 
   const msg = await message(
     <Fragment>

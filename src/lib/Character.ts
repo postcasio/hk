@@ -1,8 +1,10 @@
 import EquippedWeapon from './party/EquippedWeapon';
+import Sprite from './Sprite';
 
 export interface CharacterDefaults {
   weapon: EquippedWeapon;
   baseStats: CharacterStats;
+  sprite: Sprite;
 }
 
 export default class Character {
@@ -13,11 +15,13 @@ export default class Character {
   // shield: EquippedShield;
   // accessories: EquippedAccessory[];
   baseStats: CharacterStats;
+  sprite: Sprite;
 
-  constructor(name: string, { weapon, baseStats }: CharacterDefaults) {
+  constructor(name: string, { weapon, baseStats, sprite }: CharacterDefaults) {
     this.name = name;
     this.weapon = weapon;
     this.baseStats = baseStats;
+    this.sprite = sprite;
   }
 
   stat(name: keyof CharacterStats): number {

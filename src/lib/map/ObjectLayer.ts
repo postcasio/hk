@@ -63,20 +63,23 @@ export default class ObjectLayer {
   map: Map;
   width: number;
   height: number;
-  objects: MapObject[];
+  objects?: MapObject[];
   visible: boolean;
   x: number;
   y: number;
   shape?: Shape;
+  tiles: number[];
+  name: string;
 
   constructor(map: Map, layerData: MapFileLayer) {
     this.map = map;
     this.layerData = layerData;
 
+    this.name = layerData.name;
     this.width = layerData.width;
     this.height = layerData.height;
     this.objects = layerData.objects.map(object => new MapObject(object));
-
+    this.tiles = [];
     this.visible = layerData.visible;
     this.x = layerData.x;
     this.y = layerData.y;
@@ -85,4 +88,8 @@ export default class ObjectLayer {
   }
 
   prepare() {}
+
+  getTileAt(x: number, y: number): null {
+    return null;
+  }
 }

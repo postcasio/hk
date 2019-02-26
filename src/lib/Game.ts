@@ -6,6 +6,7 @@ import Journal from './Journal';
 export interface GameConfig {
   initialScene: typeof Scene;
   globalPixelZoom: number;
+  debugCollision: boolean;
 }
 
 export const defaultConfig: Partial<GameConfig> = {};
@@ -50,12 +51,15 @@ export default class Game {
       });
     });
 
-    Dispatch.onUpdate(() => {
-      this.handleErrors(() => {
-        this.director.update();
-        this.ui.update();
-      });
-    });
+    Dispatch.onUpdate(
+      () => {
+        this.handleErrors(() => {
+          this.director.update();
+          this.ui.update();
+        });
+      },
+      { inBackground: false, priority: -100 }
+    );
   }
 
   getUI() {

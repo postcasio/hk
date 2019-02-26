@@ -3,6 +3,8 @@ import { MapObject } from '../ObjectLayer';
 import Actor from './Actor';
 
 export default class StaticActor extends Actor {
+  isKinematic: boolean = true;
+
   static fromObject(object: MapObject): StaticActor {
     return new StaticActor(
       object.name,
@@ -11,6 +13,8 @@ export default class StaticActor extends Actor {
       object.properties.sprite
     );
   }
+
+  updatePhysicsResponse() {}
 }
 
 Entity.entityTypes.StaticActor = StaticActor;

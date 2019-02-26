@@ -48,10 +48,11 @@ export class SpriteAnimationFrame {
   spriteSourceSize: { x: number; y: number; w: number; h: number };
   sourceSize: { w: number; h: number };
   duration: number;
-  verts: VertexList;
-  flippedVerts: VertexList;
+  verts!: VertexList;
+  flippedVerts!: VertexList;
   shape: Shape;
   sprite: Sprite;
+  mask: Color = Color.White;
 
   constructor(sprite: Sprite, frameData: SpritesheetFileFrame) {
     this.sprite = sprite;
@@ -63,12 +64,17 @@ export class SpriteAnimationFrame {
     this.sourceSize = frameData.sourceSize;
     this.duration = frameData.duration;
 
-    const mask = Color.White;
+    this.updateVerts();
 
+    this.shape = new Shape(ShapeType.TriStrip, this.sprite.texture, this.verts);
+  }
+
+  updateVerts() {
     const u1 = this.frame.x / this.sprite.texture.width;
     const u2 = (this.frame.x + this.frame.w) / this.sprite.texture.width;
     const v1 = 1 - this.frame.y / this.sprite.texture.height;
     const v2 = 1 - (this.frame.y + this.frame.h) / this.sprite.texture.height;
+    const mask = this.mask;
 
     this.verts = new VertexList([
       { x: 0, y: 0, u: u1, v: v1, color: mask },
@@ -82,8 +88,6 @@ export class SpriteAnimationFrame {
       { x: 0, y: 1, u: u2, v: v2, color: mask },
       { x: 1, y: 1, u: u1, v: v2, color: mask }
     ]);
-
-    this.shape = new Shape(ShapeType.TriStrip, this.sprite.texture, this.verts);
   }
 }
 
@@ -142,12 +146,18 @@ export default class Sprite {
     this.currentAnimationFrameIndex = 0;
   }
 
-  draw(target: Surface, transform: Transform) {
+  draw(target: Surface, transform: Transform, mask: Color = Color.White) {
+    if (this.currentAnimationFrame.mask !== mask) {
+      this.currentAnimationFrame.mask = mask;
+      this.currentAnimationFrame.updateVerts();
+    }
+
     if (this.flip) {
       this.currentAnimationFrame.shape.vertexList = this.currentAnimationFrame.flippedVerts;
     } else {
       this.currentAnimationFrame.shape.vertexList = this.currentAnimationFrame.verts;
     }
+
     this.currentAnimationFrame.shape.draw(target, transform);
   }
 
@@ -179,6 +189,10 @@ export default class Sprite {
   queueAdvance() {
     if (this.job) {
       this.job.cancel();
+    }
+
+    if (this.currentAnimationFrame.duration <= 1) {
+      return;
     }
 
     this.job = Dispatch.later(this.currentAnimationFrame.duration, () => {

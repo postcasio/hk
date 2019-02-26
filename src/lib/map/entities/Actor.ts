@@ -4,16 +4,25 @@ import Sprite from '../../Sprite';
 import ActorController from './Controllers/ActorController';
 import { vec2add, vec2mul, Vec2, vec2copy, Box, boxOverlaps } from '../Physics';
 import log from '../../log';
-// import log from '../../log';
+import { Collision } from '../Collision';
+import { getEngine } from '../../commands/map';
+import Game from '../../Game';
+import CutsceneController from '../../CutsceneController';
 
 export enum CharacterState {
   Idle,
   Walk,
-  Jump
+  Jump,
+  WallLeft,
+  WallRight
 }
 export interface ActorOptions {
   gravity: number;
   controller?: ActorController;
+  scripts?: {
+    [k: string]: string | undefined;
+    talk?: string;
+  };
 }
 
 export default class Actor extends Entity {
@@ -28,15 +37,42 @@ export default class Actor extends Entity {
   position: Vec2 = { x: 0, y: 0 };
   oldPosition: Vec2 = { x: 0, y: 0 };
   box: Box = { center: { x: 0, y: 0 }, halfSize: { x: 0, y: 0 } };
-  pushedRightWall: boolean = false;
-  pushesRightWall: boolean = false;
-  pushedLeftWall: boolean = false;
-  pushesLeftWall: boolean = false;
-  wasOnGround: boolean = false;
-  onGround: boolean = false;
-  wasAtCeiling: boolean = false;
-  atCeiling: boolean = false;
+  isPlayer: boolean = false;
+  pushedRightTile: boolean = false;
+  pushesRightTile: boolean = false;
+  pushedLeftTile: boolean = false;
+  pushesLeftTile: boolean = false;
+
+  pushesRight: boolean = false;
+  pushesLeft: boolean = false;
+  pushesBottom: boolean = false;
+  pushesTop: boolean = false;
+
+  pushedTop: boolean = false;
+  pushedBottom: boolean = false;
+  pushedRight: boolean = false;
+  pushedLeft: boolean = false;
+
+  pushesLeftObject: boolean = false;
+  pushesRightObject: boolean = false;
+  pushesBottomObject: boolean = false;
+  pushesTopObject: boolean = false;
+
+  pushedLeftObject: boolean = false;
+  pushedRightObject: boolean = false;
+  pushedBottomObject: boolean = false;
+  pushedTopObject: boolean = false;
+
+  pushesBottomTile: boolean = false;
+  pushesTopTile: boolean = false;
+  pushedTopTile: boolean = false;
+  pushedBottomTile: boolean = false;
+
   state: CharacterState = CharacterState.Idle;
+  collisions: Collision[] = [];
+  interactCollisions: Collision[] = [];
+
+  isKinematic: boolean = false;
 
   static defaultOptions: ActorOptions = {
     gravity: 1.0
@@ -74,9 +110,15 @@ export default class Actor extends Entity {
     this.sprite.beginAnimating();
   }
 
-  draw(target: Surface, transform: Transform, scale: number) {
+  draw(
+    target: Surface,
+    transform: Transform,
+    offsetX: number,
+    offsetY: number,
+    scale: number
+  ) {
     // transform.translate(this.x, this.y);
-    this.sprite.draw(target, transform);
+    this.sprite.draw(target, transform, Color.White);
   }
 
   update(delta: number) {
@@ -92,10 +134,14 @@ export default class Actor extends Entity {
   updatePhysics(delta: number) {
     this.oldPosition = vec2copy(this.position);
     this.oldVelocity = vec2copy(this.velocity);
-    this.pushedLeftWall = this.pushesLeftWall;
-    this.pushedRightWall = this.pushesRightWall;
-    this.wasOnGround = this.onGround;
-    this.wasAtCeiling = this.atCeiling;
+    this.pushedLeftTile = this.pushesLeftTile;
+    this.pushedRightTile = this.pushesRightTile;
+    this.pushedTopTile = this.pushesTopTile;
+    this.pushedBottomTile = this.pushesBottomTile;
+    this.pushedBottomObject = this.pushesBottomObject;
+    this.pushedRightObject = this.pushesRightObject;
+    this.pushedLeftObject = this.pushesLeftObject;
+    this.pushedTopObject = this.pushesTopObject;
 
     const workVec: Vec2 = { x: this.velocity.x, y: this.velocity.y };
     const deltaVec: Vec2 = { x: delta, y: delta };
@@ -116,9 +162,9 @@ export default class Actor extends Entity {
         collision.box!.halfSize.y -
         this.box.halfSize.y;
       // this.velocity.y = 0;
-      this.onGround = true;
+      this.pushesBottomTile = true;
     } else {
-      this.onGround = false;
+      this.pushesBottomTile = false;
     }
 
     if (
@@ -130,9 +176,9 @@ export default class Actor extends Entity {
         collision.box!.halfSize.y +
         this.box.halfSize.y;
       this.velocity.y *= 0.5;
-      this.atCeiling = true;
+      this.pushesTopTile = true;
     } else {
-      this.atCeiling = false;
+      this.pushesTopTile = false;
     }
 
     if (
@@ -144,14 +190,14 @@ export default class Actor extends Entity {
         collision
       )
     ) {
-      this.pushesLeftWall = true;
+      this.pushesLeftTile = true;
       this.velocity.x = 0;
       this.position.x =
         collision.box!.center.x +
         collision.box!.halfSize.x +
         this.box.halfSize.x;
     } else {
-      this.pushesLeftWall = false;
+      this.pushesLeftTile = false;
     }
 
     if (
@@ -163,25 +209,32 @@ export default class Actor extends Entity {
         collision
       )
     ) {
-      this.pushesRightWall = true;
+      this.pushesRightTile = true;
       this.velocity.x = 0;
       this.position.x =
         collision.box!.center.x -
         collision.box!.halfSize.x -
         this.box.halfSize.x;
     } else {
-      this.pushesRightWall = false;
+      this.pushesRightTile = false;
     }
+
+    this.pushesBottom = this.pushesBottomTile || this.pushesBottomObject;
+    this.pushesRight = this.pushesRightTile || this.pushesRightObject;
+    this.pushesLeft = this.pushesLeftTile || this.pushesLeftObject;
+    this.pushesTop = this.pushesTopTile || this.pushesTopObject;
 
     this.x = this.position.x;
     this.y = this.position.y;
+
+    this.map!.updateActorAreas(this);
   }
 
   hasGround(oldPos: Vec2, pos: Vec2, vel: Vec2, out?: { box?: Box }) {
     const center = this.box.center;
     const halfSize = this.box.halfSize;
 
-    const left = center.x - halfSize.x + 1;
+    const left = center.x - halfSize.x + 2;
     const right = center.x + halfSize.x - 2;
     const y = center.y + halfSize.y + 1;
 
@@ -296,7 +349,186 @@ export default class Actor extends Entity {
   }
 
   static fromObject(object: MapObject): Actor {
-    return new Actor(object.name, object.x, object.y, object.properties.sprite);
+    return new Actor(
+      object.name,
+      object.x,
+      object.y,
+      object.properties.sprite,
+      {
+        scripts: {
+          talk: object.properties.cutsceneTalk
+        }
+      }
+    );
+  }
+
+  hasCollisionWith(other: Actor) {
+    for (let i = 0; i < this.collisions.length; i++) {
+      if (this.collisions[i].other === other) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  hasInteractCollisionWith(other: Actor) {
+    for (let i = 0; i < this.interactCollisions.length; i++) {
+      if (this.interactCollisions[i].other === other) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  updatePhysicsResponse() {
+    if (this.isKinematic) {
+      return;
+    }
+
+    this.pushesBottomObject = false;
+    this.pushesRightObject = false;
+    this.pushesLeftObject = false;
+    this.pushesTopObject = false;
+
+    let offsetSum = { x: 0, y: 0 };
+
+    for (let i = 0; i < this.collisions.length; i++) {
+      const collision = this.collisions[i];
+      const { other, oldPos1, pos1, oldPos2, pos2 } = collision;
+
+      let overlap = {
+        x: collision.overlap.x - offsetSum.x,
+        y: collision.overlap.y - offsetSum.y
+      };
+
+      if (overlap.x === 0) {
+        if (other.box.center.x > this.box.center.x) {
+          this.pushesRightObject = true;
+          this.velocity.x = Math.min(this.velocity.x, 0);
+        } else {
+          this.pushesLeftObject = true;
+          this.velocity.x = Math.max(this.velocity.x, 0);
+        }
+        continue;
+      } else if (overlap.y === 0) {
+        if (other.box.center.y > this.box.center.y) {
+          this.pushesBottomObject = true;
+          this.velocity.y = Math.min(this.velocity.y, 0);
+        } else {
+          this.pushesTopObject = true;
+          this.velocity.y = Math.max(this.velocity.y, 0);
+        }
+        continue;
+      }
+
+      const absSpeed1 = {
+        x: Math.abs(pos1.x - oldPos1.x),
+        y: Math.abs(pos1.y - oldPos1.y)
+      };
+      const absSpeed2 = {
+        x: Math.abs(pos2.x - oldPos2.x),
+        y: Math.abs(pos2.y - oldPos2.y)
+      };
+
+      const speedSum = vec2add(vec2copy(absSpeed1), absSpeed2);
+
+      let speedRatioX = 0;
+      let speedRatioY = 0;
+      if (other.isKinematic) {
+        speedRatioX = speedRatioY = 1;
+      } else {
+        if (speedSum.x === 0 && speedSum.y === 0) {
+          speedRatioX = speedRatioY = 0.5;
+        } else if (speedSum.x === 0) {
+          speedRatioX = 0.5;
+          speedRatioY = absSpeed1.y / speedSum.y;
+        } else if (speedSum.y === 0) {
+          speedRatioX = absSpeed1.x / speedSum.x;
+          speedRatioY = 0.5;
+        } else {
+          speedRatioX = absSpeed1.x / speedSum.x;
+          speedRatioY = absSpeed1.y / speedSum.y;
+        }
+      }
+
+      const offsetX = overlap.x * speedRatioX;
+      const offsetY = overlap.y * speedRatioY;
+
+      const overlappedLastFrameX =
+        Math.abs(oldPos1.x - oldPos2.x) <
+        this.box.halfSize.x + other.box.halfSize.x;
+      const overlappedLastFrameY =
+        Math.abs(oldPos1.y - oldPos2.y) <
+        this.box.halfSize.y + other.box.halfSize.y;
+
+      if (
+        (!overlappedLastFrameX && overlappedLastFrameY) ||
+        (!overlappedLastFrameX &&
+          !overlappedLastFrameY &&
+          Math.abs(overlap.x) <= Math.abs(overlap.y))
+      ) {
+        this.position.x += offsetX;
+        offsetSum.x += offsetX;
+
+        if (overlap.x < 0) {
+          this.pushesRightObject = true;
+          this.velocity.x = Math.min(this.velocity.x, 0);
+        } else {
+          this.pushesLeftObject = true;
+          this.velocity.x = Math.max(this.velocity.x, 0);
+        }
+      } else {
+        this.position.y += offsetY;
+        offsetSum.y += offsetY;
+
+        if (overlap.y < 0) {
+          this.pushesBottomObject = true;
+          this.velocity.y = Math.min(this.velocity.y, 0);
+        } else {
+          this.pushesTopObject = true;
+          this.velocity.y = Math.max(this.velocity.y, 0);
+        }
+      }
+    }
+
+    //update the aabb
+    this.x = this.position.x;
+    this.y = this.position.y;
+    this.box.center.x = this.x;
+    this.box.center.y = this.y;
+
+    this.options.controller && this.options.controller.updateResponse(this);
+  }
+
+  getScreenBox() {
+    const camera = getEngine().camera!;
+    const zoom = camera.zoom * Game.current.config.globalPixelZoom;
+
+    const x = -(camera.x * zoom - camera.frameW / 2) + camera.frameX;
+    const y = -(camera.y * zoom - camera.frameH / 2) + camera.frameY;
+
+    const box = {
+      center: {
+        x: this.box.center.x * zoom + x,
+        y: this.box.center.y * zoom + y
+      },
+      halfSize: { x: this.box.halfSize.x * zoom, y: this.box.halfSize.y * zoom }
+    };
+
+    return box;
+  }
+
+  async runScript(name: string) {
+    if (!this.options.scripts || !this.options.scripts[name]) {
+      log.debug(`Actor(${this.name}) cannot run script ${name}`);
+    } else {
+      log.debug(`Actor(${this.name}) running script ${name}`);
+      const script = await import('./cutscenes/' + this.options.scripts[name]!);
+      const controller = new CutsceneController(script.default);
+      await controller.exec();
+    }
   }
 }
 

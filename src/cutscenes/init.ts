@@ -16,7 +16,7 @@ export default async function init(game: Game): Promise<any> {
   journal.addParty('DEFAULT', initialParty);
 
   log.debug('Changing to first map...');
-  const map = await changeMap('res/map/test2.json');
+  const map = await changeMap('res/map/cave.json');
 
   const marker = map.findEntity('start');
 
@@ -32,6 +32,8 @@ export default async function init(game: Game): Promise<any> {
       controller: new PlayerController()
     }
   );
+  hero.isPlayer = true;
+  // hero.isKinematic = true;
   map.addEntity(hero);
   const layer = marker.getLayer();
   if (!layer) {

@@ -1,0 +1,101 @@
+{
+  "frames": [
+    {
+      "filename": "stick 0.aseprite",
+      "frame": { "x": 0, "y": 0, "w": 16, "h": 24 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 16, "h": 24 },
+      "sourceSize": { "w": 16, "h": 24 },
+      "duration": 10
+    },
+    {
+      "filename": "stick 1.aseprite",
+      "frame": { "x": 16, "y": 0, "w": 16, "h": 24 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 16, "h": 24 },
+      "sourceSize": { "w": 16, "h": 24 },
+      "duration": 10
+    },
+    {
+      "filename": "stick 2.aseprite",
+      "frame": { "x": 32, "y": 0, "w": 16, "h": 24 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 16, "h": 24 },
+      "sourceSize": { "w": 16, "h": 24 },
+      "duration": 10
+    },
+    {
+      "filename": "stick 3.aseprite",
+      "frame": { "x": 48, "y": 0, "w": 16, "h": 24 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 16, "h": 24 },
+      "sourceSize": { "w": 16, "h": 24 },
+      "duration": 10
+    },
+    {
+      "filename": "stick 4.aseprite",
+      "frame": { "x": 0, "y": 24, "w": 16, "h": 24 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 16, "h": 24 },
+      "sourceSize": { "w": 16, "h": 24 },
+      "duration": 2
+    },
+    {
+      "filename": "stick 5.aseprite",
+      "frame": { "x": 16, "y": 24, "w": 16, "h": 24 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 16, "h": 24 },
+      "sourceSize": { "w": 16, "h": 24 },
+      "duration": 5
+    },
+    {
+      "filename": "stick 6.aseprite",
+      "frame": { "x": 32, "y": 24, "w": 16, "h": 24 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 16, "h": 24 },
+      "sourceSize": { "w": 16, "h": 24 },
+      "duration": 5
+    },
+    {
+      "filename": "stick 7.aseprite",
+      "frame": { "x": 48, "y": 24, "w": 16, "h": 24 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 16, "h": 24 },
+      "sourceSize": { "w": 16, "h": 24 },
+      "duration": 1
+    },
+    {
+      "filename": "stick 8.aseprite",
+      "frame": { "x": 0, "y": 48, "w": 16, "h": 24 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 16, "h": 24 },
+      "sourceSize": { "w": 16, "h": 24 },
+      "duration": 1
+    }
+  ],
+  "meta": {
+    "app": "http://www.aseprite.org/",
+    "version": "1.3-dev",
+    "image": "stick.png",
+    "format": "RGBA8888",
+    "size": { "w": 72, "h": 72 },
+    "scale": "1",
+    "frameTags": [
+      { "name": "idle", "from": 0, "to": 3, "direction": "forward" },
+      { "name": "jump", "from": 4, "to": 7, "direction": "forward" },
+      { "name": "fall", "from": 7, "to": 7, "direction": "forward" },
+      { "name": "wallright", "from": 8, "to": 8, "direction": "forward" }
+    ],
+    "layers": [{ "name": "Layer 1", "opacity": 255, "blendMode": "normal" }],
+    "slices": []
+  }
+}

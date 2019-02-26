@@ -21,12 +21,12 @@ export default class Director {
     ...args: Array<any>
   ): Promise<Scene> {
     return new Promise((resolve, reject) => {
-      Dispatch.now(() => {
+      Dispatch.now(async () => {
         if (this.scene) {
-          this.scene.sceneDidLeave();
+          await this.scene.sceneDidLeave();
         }
         this.scene = new sceneConstructor(this, ...args);
-        this.scene.sceneDidEnter();
+        await this.scene.sceneDidEnter();
         this.game.ui.renderScene(this.scene);
 
         resolve(this.scene);

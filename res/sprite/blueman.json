@@ -2,38 +2,38 @@
   "frames": [
     {
       "filename": "blueman 0.aseprite",
-      "frame": { "x": 0, "y": 0, "w": 10, "h": 31 },
+      "frame": { "x": 0, "y": 0, "w": 10, "h": 20 },
       "rotated": false,
       "trimmed": false,
-      "spriteSourceSize": { "x": 0, "y": 0, "w": 10, "h": 31 },
-      "sourceSize": { "w": 10, "h": 31 },
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 10, "h": 20 },
+      "sourceSize": { "w": 10, "h": 20 },
       "duration": 100
     },
     {
       "filename": "blueman 1.aseprite",
-      "frame": { "x": 10, "y": 0, "w": 10, "h": 31 },
+      "frame": { "x": 10, "y": 0, "w": 10, "h": 20 },
       "rotated": false,
       "trimmed": false,
-      "spriteSourceSize": { "x": 0, "y": 0, "w": 10, "h": 31 },
-      "sourceSize": { "w": 10, "h": 31 },
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 10, "h": 20 },
+      "sourceSize": { "w": 10, "h": 20 },
       "duration": 100
     },
     {
       "filename": "blueman 2.aseprite",
-      "frame": { "x": 20, "y": 0, "w": 10, "h": 31 },
+      "frame": { "x": 20, "y": 0, "w": 10, "h": 20 },
       "rotated": false,
       "trimmed": false,
-      "spriteSourceSize": { "x": 0, "y": 0, "w": 10, "h": 31 },
-      "sourceSize": { "w": 10, "h": 31 },
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 10, "h": 20 },
+      "sourceSize": { "w": 10, "h": 20 },
       "duration": 100
     },
     {
       "filename": "blueman 3.aseprite",
-      "frame": { "x": 30, "y": 0, "w": 10, "h": 31 },
+      "frame": { "x": 30, "y": 0, "w": 10, "h": 20 },
       "rotated": false,
       "trimmed": false,
-      "spriteSourceSize": { "x": 0, "y": 0, "w": 10, "h": 31 },
-      "sourceSize": { "w": 10, "h": 31 },
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 10, "h": 20 },
+      "sourceSize": { "w": 10, "h": 20 },
       "duration": 100
     }
   ],

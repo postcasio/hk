@@ -2,7 +2,9 @@ import Tileset, { Tile } from './Tileset';
 import Map from './Map';
 import { MapFileObject, MapObject } from './ObjectLayer';
 import { boxOffset } from './Physics';
+import Prim from 'prim';
 import log from '../log';
+import { colorFromTiledARGB } from './utils';
 
 const FLIPPED_HORIZONTALLY_FLAG = 0x80000000;
 const FLIPPED_VERTICALLY_FLAG = 0x40000000;
@@ -22,6 +24,11 @@ export interface MapFileLayer {
   x: number;
   y: number;
   objects: MapFileObject[];
+  properties: {
+    name: string;
+    type: 'float' | 'string' | 'bool' | 'color' | 'file' | 'int';
+    value: any;
+  }[];
 }
 
 export default class Layer {
@@ -38,6 +45,12 @@ export default class Layer {
   shape?: Shape;
   objects?: MapObject[];
   name: string;
+  properties: {
+    [k: string]: any;
+    lighting?: boolean;
+    lightingAmbientColor?: Color;
+  };
+  lighting?: Surface;
 
   constructor(map: Map, layerData: MapFileLayer) {
     this.map = map;
@@ -51,6 +64,24 @@ export default class Layer {
     this.x = layerData.x;
     this.y = layerData.y;
 
+    this.properties = layerData!.properties
+      ? layerData!.properties.reduce(
+          (props, { name, type, value }) => {
+            switch (type) {
+              case 'color':
+                log.debug(name, type, value);
+                props[name] = colorFromTiledARGB(value);
+                break;
+              default:
+                props[name] = value;
+            }
+
+            return props;
+          },
+          {} as { [k: string]: any }
+        )
+      : {};
+
     this.prepare();
   }
 
@@ -60,6 +91,14 @@ export default class Layer {
       this.height * this.map.tileheight,
       Color.Transparent
     );
+
+    if (this.properties.lighting) {
+      this.lighting = new Surface(
+        this.width * this.map.tilewidth,
+        this.height * this.map.tileheight,
+        Color.Transparent
+      );
+    }
 
     this.surface.blendOp = BlendOp.Replace;
 
@@ -121,17 +160,6 @@ export default class Layer {
               { x: x2, y: y2, u: u2, v: v2, color: mask }
             ]
           );
-
-          // Prim.blitSection(
-          //   this.surface,s
-          //   xpix * zoom,
-          //   ypix * zoom,
-          //   sourceTile.tileset!.texture,
-          //   sourceTile.x,
-          //   sourceTile.y,
-          //   sourceTile.w,
-          //   sourceTile.h
-          // );
         }
       }
     }
@@ -149,67 +177,6 @@ export default class Layer {
       new VertexList(vertexList)
     );
   }
-
-  // createModel() {
-  //   let x = 0;
-  //   let y = 0;
-  //   const shapes = [];
-  //   const tileset = this.engine.tilesets[0];
-  //   // const width = this.layerData.width * tileset.tilewidth;
-  //   // const height = this.layerData.height * tileset.tileheight;
-
-  //   for (let tileIndex of this.layerData.data) {
-  //     // const flippedHoriz = tileIndex & FLIPPED_HORIZONTALLY_FLAG;
-  //     // const flippedDiag = tileIndex & FLIPPED_DIAGONALLY_FLAG;
-  //     // const flippedVert = tileIndex & FLIPPED_VERTICALLY_FLAG;
-
-  //     tileIndex &= ~(
-  //       FLIPPED_DIAGONALLY_FLAG |
-  //       FLIPPED_HORIZONTALLY_FLAG |
-  //       FLIPPED_VERTICALLY_FLAG
-  //     );
-
-  //     if (tileIndex >= tileset.firstgid) {
-  //       const index = tileIndex - tileset.firstgid + 2;
-
-  //       const widthInTiles = tileset.imagewidth / tileset.tilewidth;
-  //       const srcx = ((index + 1) % widthInTiles) * tileset.tilewidth;
-  //       const srcy = Math.floor(index / widthInTiles) * tileset.tileheight;
-
-  //       log.debug([
-  //         tileset.texture,
-  //         srcx / tileset.texture.width,
-  //         srcy / tileset.texture.height,
-  //         tileset.tilewidth / tileset.texture.width,
-  //         tileset.tileheight / tileset.texture.height,
-  //         x * tileset.tilewidth,
-  //         y * tileset.tilewidth,
-  //         tileset.tilewidth,
-  //         tileset.tilewidth
-  //       ]);
-
-  //       shapes.push(
-  //         createShape(
-  //           tileset.texture,
-  //           srcx / tileset.texture.width,
-  //           srcy / tileset.texture.height,
-  //           tileset.tilewidth / tileset.texture.width,
-  //           tileset.tileheight / tileset.texture.height,
-  //           x * tileset.tilewidth,
-  //           y * tileset.tilewidth,
-  //           tileset.tilewidth,
-  //           tileset.tilewidth
-  //         )
-  //       );
-  //     }
-  //     if (++x === this.layerData.width) {
-  //       x = 0;
-  //       y++;
-  //     }
-  //   }
-
-  //   return (this.model = new Model(shapes));
-  // }
 
   getTileAt(xpix: number, ypix: number): Tile | null {
     const tw = this.map.tilewidth;
@@ -230,10 +197,54 @@ export default class Layer {
     const tile = this.map.getTile(gid);
 
     if (tile && tile.box) {
-      log.debug(`applying offset to tile box: ${x * tw},${y * th}`);
       tile.box = boxOffset(tile.box, x * tw, y * th);
     }
 
     return tile;
+  }
+
+  drawCollisions(
+    target: Surface,
+    offsetX: number,
+    offsetY: number,
+    zoom: number
+  ) {
+    let sourceTile: Tile | null = null;
+
+    const mapTilewidth = this.map.tilewidth;
+    const mapTileheight = this.map.tileheight;
+    const color = new Color(1, 0.2, 0.2, 0.4);
+    const colorOneWay = new Color(0.2, 0.2, 1, 0.4);
+
+    for (let y = 0, i = 0; y < this.height; y++) {
+      for (let x = 0; x < this.width; x++, i++) {
+        const gid =
+          this.tiles[i] &
+          ~(
+            FLIPPED_DIAGONALLY_FLAG |
+            FLIPPED_HORIZONTALLY_FLAG |
+            FLIPPED_VERTICALLY_FLAG
+          );
+
+        const xpix = x * mapTilewidth * zoom;
+        const ypix = y * mapTileheight * zoom;
+
+        if ((sourceTile = this.map.getTile(gid)) && sourceTile.box) {
+          const x1 = xpix;
+          const y1 = ypix;
+
+          const box = sourceTile.box;
+
+          Prim.drawSolidRectangle(
+            target,
+            x1 + offsetX + (box.center.x - box.halfSize.x) * zoom,
+            y1 + offsetY + (box.center.y - box.halfSize.y) * zoom,
+            box.halfSize.x * 2 * zoom,
+            box.halfSize.y * 2 * zoom,
+            sourceTile.properties.oneway ? colorOneWay : color
+          );
+        }
+      }
+    }
   }
 }

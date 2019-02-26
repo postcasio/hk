@@ -5,7 +5,7 @@ import { terser as pluginTerser } from 'rollup-plugin-terser';
 
 import glob from 'glob';
 
-const cutscenes = glob.sync('build/main/cutscenes/*.js');
+const cutscenes = glob.sync('build/main/cutscenes/**/*.js');
 const input = {
   index: 'build/main/index.js',
   ...cutscenes.reduce(

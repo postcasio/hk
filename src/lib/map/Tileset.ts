@@ -76,42 +76,44 @@ export default class Tileset {
     this.tilecount = this.tilesetData.tilecount;
     this.columns = this.tilesetData.columns;
     this.margin = this.tilesetData.margin;
-    this.tiles = new Map(
-      this.tilesetData.tiles!.map(
-        (tile): [number, Tile] => {
-          let box: Box | undefined = undefined;
-          let properties: { [k: string]: any } = {};
+    this.tiles = this.tilesetData.tiles
+      ? new Map(
+          this.tilesetData.tiles.map(
+            (tile): [number, Tile] => {
+              let box: Box | undefined = undefined;
+              let properties: { [k: string]: any } = {};
 
-          if (tile.objectgroup.objects.length) {
-            const object = tile.objectgroup.objects[0];
-            const halfw = object.width / 2;
-            const halfh = object.height / 2;
-            box = {
-              center: { x: object.x + halfw, y: object.y + halfh },
-              halfSize: { x: halfw, y: halfh }
-            };
-            properties = object.properties
-              ? object.properties.reduce(
-                  (props, { name, type, value }) => {
-                    props[name] = value;
+              if (tile.objectgroup.objects.length) {
+                const object = tile.objectgroup.objects[0];
+                const halfw = object.width / 2;
+                const halfh = object.height / 2;
+                box = {
+                  center: { x: object.x + halfw, y: object.y + halfh },
+                  halfSize: { x: halfw, y: halfh }
+                };
+                properties = object.properties
+                  ? object.properties.reduce(
+                      (props, { name, type, value }) => {
+                        props[name] = value;
 
-                    return props;
-                  },
-                  {} as { [k: string]: any }
-                )
-              : {};
-          }
-          return [
-            tile.id,
-            {
-              index: tile.id,
-              box,
-              properties
+                        return props;
+                      },
+                      {} as { [k: string]: any }
+                    )
+                  : {};
+              }
+              return [
+                tile.id,
+                {
+                  index: tile.id,
+                  box,
+                  properties
+                }
+              ];
             }
-          ];
-        }
-      )
-    );
+          )
+        )
+      : new Map();
   }
 
   lookupTile(

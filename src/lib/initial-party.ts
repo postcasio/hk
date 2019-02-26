@@ -9,7 +9,7 @@ export function createInitialParty() {
   for (const characterName of ['Elvis', 'Buddy', 'Michael']) {
     party.addCharacter(
       new Character(characterName, {
-        sprite: new Sprite('res/sprite/blueman.json'),
+        sprite: new Sprite('res/sprite/stick.json'),
         weapon: new EquippedWeapon(new Shortsword()),
         baseStats: {
           str: 40,

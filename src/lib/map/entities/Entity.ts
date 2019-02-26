@@ -2,6 +2,7 @@ import { MapObject } from '../ObjectLayer';
 import Map_ from '../Map';
 import Layer from '../Layer';
 import Camera from '../Camera';
+import { Vec2 } from '../Physics';
 
 export default class Entity {
   name: string;
@@ -10,6 +11,8 @@ export default class Entity {
   map?: Map_;
   layer?: Layer;
   camera?: Camera;
+  areas: Vec2[] = [];
+  idsInAreas: number[] = [];
 
   static entityTypes: {
     [k: string]: { fromObject: (object: MapObject) => Entity };
@@ -33,12 +36,19 @@ export default class Entity {
     this.layer = layer;
   }
 
-  draw(target: Surface, transform: Transform, scale: number) {}
+  draw(
+    target: Surface,
+    transform: Transform,
+    offsetX: number,
+    offsetY: number,
+    scale: number
+  ) {}
 
   update(delta: number) {
     if (this.camera) {
       this.camera.x = this.x;
       this.camera.y = this.y;
+      this.camera.bound();
     }
   }
 

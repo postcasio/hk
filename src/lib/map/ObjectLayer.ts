@@ -70,6 +70,7 @@ export default class ObjectLayer {
   shape?: Shape;
   tiles: number[];
   name: string;
+  properties: { [k: string]: any };
 
   constructor(map: Map, layerData: MapFileLayer) {
     this.map = map;
@@ -83,7 +84,16 @@ export default class ObjectLayer {
     this.visible = layerData.visible;
     this.x = layerData.x;
     this.y = layerData.y;
+    this.properties = layerData!.properties
+      ? layerData!.properties.reduce(
+          (props, { name, type, value }) => {
+            props[name] = value;
 
+            return props;
+          },
+          {} as { [k: string]: any }
+        )
+      : {};
     this.prepare();
   }
 
@@ -92,4 +102,6 @@ export default class ObjectLayer {
   getTileAt(x: number, y: number): null {
     return null;
   }
+
+  drawCollisions() {}
 }

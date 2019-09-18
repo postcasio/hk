@@ -1,6 +1,6 @@
 # game
 
-a 2d platform rpg i abandoned
+a 2d platform rpg i abandoned. it uses [minisphere](https://github.com/fatcerberus/minisphere) and [kinetic](https://github.com/postcasio/sphere-kinetic)
 
 ![demonstration gif](https://i.imgur.com/YGllZO8.gif)
 

@@ -2,4 +2,4 @@
 
 a 2d platform rpg i abandoned
 
-![demonstration gif](https://imgur.com/YGllZO8)
+![demonstration gif](https://i.imgur.com/YGllZO8.gifv)

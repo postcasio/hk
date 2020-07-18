@@ -72,7 +72,7 @@
     "glslify": "^7.0.0",
     "kiwi.js": "^1.1.0",
     "load-bmfont": "^1.4.0",
-    "lodash": "^4.17.11",
+    "lodash": "^4.17.19",
     "parse-bmfont-ascii": "^1.0.6",
     "rollup-plugin-terser": "^4.0.4",
     "rollup-plugin-uglify": "^6.0.2",
